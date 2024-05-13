@@ -27,7 +27,7 @@ This Bash script, **mckn.sh**, assists in automatically connecting an Allstarlin
 ### Parameters
 
 - `your_node_number` (optional): Your Allstarlink node number. If not provided, the script will default to `50445`.
-- `connection_mode` (optional): The connection mode to use (2 or 3). If not provided, the script will default to `2`.
+- `connection_mode` (optional): The connection mode to use (2 for monitor and 3 for Transceive). If not provided, the script will default to `2`.
 
 ### Example
 
@@ -69,6 +69,7 @@ Make sure to replace `/path/to/mckn.sh` with the actual path to your `mckn.sh` s
 
 This project is licensed under the [MIT License](LICENSE).
 
+73 de BV5DJ
 ---
 
 
