@@ -45,19 +45,11 @@ To activate the script from DTMF control in Allstarlink, you can add a macro to 
    ```bash
    nano /etc/asterisk/rpt.conf
    ```
-2. Add the following lines to define a macro named `MCKN` that runs the script when activated by the `*A2` DTMF key:
+2. Add the following lines to the function section that runs the script when activated by the `*A2` DTMF key:
    ```ini
-   [macro MCKN]
-   ; Activate the Most Connected Keyed Node script
-   ; Replace 12345 with your node number and 3 with the desired connection mode
-   exten => s,1,System(/path/to/mckn.sh 12345 3)
-   exten => s,n,Playback(silence/1)
-   exten => s,n,Hangup()
-   
-   [your_node_number]
-   ; Your existing node configuration...
-   ; Add the following line to associate the macro with the *A2 DTMF key
-   29=*A2,MCKN
+   [functions12345]
+   A2=cmd,/path/to/mckn.sh 50445 2			;  Monitor most connected node
+
    ```
 3. Save and exit the file.
 
