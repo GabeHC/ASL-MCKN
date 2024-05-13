@@ -48,7 +48,7 @@ To activate the script from DTMF control in Allstarlink, you can add a macro to 
 2. Add the following lines to the function section that runs the script when activated by the `*A2` DTMF key:
    ```ini
    [functions12345]
-   A2=cmd,/path/to/mckn.sh 50445 2			;  Monitor most connected node
+   A2=cmd,/path/to/mckn.sh 12345 2			;  Monitor most connected node
 
    ```
 3. Save and exit the file.
