@@ -14,10 +14,13 @@ if [ "$#" -ge 2 ]; then
 fi
 
 # Validate connection mode
-if [ "$connection_mode" != "2" ] && [ "$connection_mode" != "3" ]; then
-    echo "Connection mode must be 2 or 3."
+if [ "$connection_mode" != "2" ] && [ "$connection_mode" != "3" ] && [ "$connection_mode" != "74" ] ; then
+    echo "Connection mode must be 2, 3 or 74."
     exit 1
 fi
+
+# Load last connected node from environment variable
+LAST_CONNECTED_NODE="$LAST_CONNECTED_NODE"
 
 # Download the HTML content of the page
 curl -s http://stats.allstarlink.org/stats/keyed > page.html
@@ -50,8 +53,8 @@ while IFS= read -r line; do
         # Print the node and its number of connections
         echo "Node $current_node: $connection_count connections"
 
-        # Update the most connected node if necessary
-        if [[ "$connection_count" -gt "$max_connections" ]]; then
+        # Update the most connected node if necessary and skip LAST_CONNECTED_NODE
+        if [[ "$connection_count" -gt "$max_connections" && "$current_node" != "$LAST_CONNECTED_NODE" ]]; then
             max_connections=$connection_count
             most_connected_node=$current_node
         fi
@@ -61,11 +64,14 @@ done < page.html
 # Print the most connected node
 echo "Most connected node: $most_connected_node with $max_connections connections"
 
-# Connect to the most connected node using Allstarlink
+# Connect to the most connected node using Allstarlink if it's not empty
 if [[ -n "$most_connected_node" ]]; then
     echo "Connecting to node $most_connected_node..."
     # Replace 'your_node_number' with your node number and 'connection_mode' with the provided connection mode
     asterisk -rx "rpt fun $your_node_number *$connection_mode$most_connected_node"
+    
+    # Update LAST_CONNECTED_NODE environment variable
+    export LAST_CONNECTED_NODE="$most_connected_node"
 else
     echo "No most connected node found."
 fi
