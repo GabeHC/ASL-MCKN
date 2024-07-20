@@ -19,8 +19,12 @@ if [ "$connection_mode" != "2" ] && [ "$connection_mode" != "3" ] && [ "$connect
     exit 1
 fi
 
-# Load last connected node from environment variable
-LAST_CONNECTED_NODE="$LAST_CONNECTED_NODE"
+# Load last connected node from file
+if [ -f "last_connected_node.txt" ]; then
+    LAST_CONNECTED_NODE=$(cat last_connected_node.txt)
+else
+    LAST_CONNECTED_NODE=""
+fi
 
 # Download the HTML content of the page
 curl -s http://stats.allstarlink.org/stats/keyed > page.html
@@ -70,8 +74,9 @@ if [[ -n "$most_connected_node" ]]; then
     # Replace 'your_node_number' with your node number and 'connection_mode' with the provided connection mode
     asterisk -rx "rpt fun $your_node_number *$connection_mode$most_connected_node"
     
-    # Update LAST_CONNECTED_NODE environment variable
-    export LAST_CONNECTED_NODE="$most_connected_node"
+    # Update LAST_CONNECTED_NODE environment variable and save it to a file
+    echo "$most_connected_node" > last_connected_node.txt
 else
     echo "No most connected node found."
 fi
+
