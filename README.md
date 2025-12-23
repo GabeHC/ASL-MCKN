@@ -1,5 +1,3 @@
----
-
 # ASL-MCKN – Most Connected Keyed Node Utility
 
 ASL-MCKN is a shared utility for **AllStarLink (ASL)** systems that automatically connects a node to the **most connected keyed node** on the network, with support for reconnecting, disconnecting, and multiple connection modes.
