@@ -29,14 +29,13 @@ STATE_NODE="${STATE_DIR}/last_connected_node.txt"
 STATE_MODE="${STATE_DIR}/last_mode.txt"
 LOCKFILE="${STATE_DIR}/asl-mckn.lock"
 
-
 mkdir -p "$STATE_DIR"
 
 # ============================
 # Lock (DTMF-safe)
 # ============================
 exec 9>"$LOCKFILE" || exit 1
-flock -n 9 || exit 0
+/usr/bin/flock -n 9 || exit 0
 
 # ============================
 # Load state
@@ -60,7 +59,7 @@ if [[ "$MODE" == "1" ]]; then
     echo "No last node to disconnect"
     exit 0
   fi
-  asterisk -rx "rpt fun $NODE *1$LAST_NODE"
+  /usr/sbin/asterisk -rx "rpt fun $NODE *1$LAST_NODE"
   exit 0
 fi
 
@@ -72,27 +71,21 @@ if [[ "$MODE" == "0" ]]; then
     echo "No last node to reconnect"
     exit 1
   fi
-  asterisk -rx "rpt fun $NODE *${LAST_MODE}${LAST_NODE}"
+  /usr/sbin/asterisk -rx "rpt fun $NODE *${LAST_MODE}${LAST_NODE}"
   exit 0
 fi
 
 # ============================
 # Find most-connected keyed node (robust)
 # ============================
-TMP="$(mktemp)"
+TMP="$(/usr/bin/mktemp)"
 trap 'rm -f "$TMP"' EXIT
 
-curl -fsSL "http://stats.allstarlink.org/stats/keyed" -o "$TMP"
+/usr/bin/curl -fsSL "http://stats.allstarlink.org/stats/keyed" -o "$TMP"
 
 # Extract node IDs and pick the most frequent one (excluding LAST_NODE if set)
 BEST_NODE="$(
-  grep -o '/stats/[0-9]\+' "$TMP" \
-  | sed 's|/stats/||' \
-  | { if [[ -n "${LAST_NODE:-}" ]]; then grep -v "^${LAST_NODE}$"; else cat; fi; } \
-  | sort \
-  | uniq -c \
-  | sort -nr \
-  | awk 'NR==1 {print $2}'
+  grep -o '/stats/[0-9]\+' "$TMP"   | sed 's|/stats/||'   | { if [[ -n "${LAST_NODE:-}" ]]; then grep -v "^${LAST_NODE}$"; else cat; fi; }   | sort   | uniq -c   | sort -nr   | awk 'NR==1 {print $2}'
 )"
 
 if [[ -z "$BEST_NODE" ]]; then
@@ -103,7 +96,7 @@ fi
 # ============================
 # Connect & save state
 # ============================
-asterisk -rx "rpt fun $NODE *${MODE}${BEST_NODE}"
+/usr/sbin/asterisk -rx "rpt fun $NODE *${MODE}${BEST_NODE}"
 
 echo "$BEST_NODE" > "$STATE_NODE"
 echo "$MODE" > "$STATE_MODE"

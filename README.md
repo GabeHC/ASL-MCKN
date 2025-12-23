@@ -43,11 +43,13 @@ C3=cmd,/usr/local/sbin/mckn.sh <NODE> 3   ; transceive most connected node
 C4=cmd,/usr/local/sbin/mckn.sh <NODE> 4   ; local monitor most connected node (maps to 74)
 ```
 
-Reload after editing:
+Reload after editing / patching:
 
+- **ASL3 (tested):**
 ```bash
-asterisk -rx "rpt reload"
+asterisk -rx "module reload app_rpt.so"
 ```
+- **HamVoIP:** the same command works; if you prefer, you can restart Asterisk.
 
 ## Manual usage
 

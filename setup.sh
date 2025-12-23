@@ -15,15 +15,15 @@ if [[ "${EUID:-0}" -ne 0 ]]; then
   exit 1
 fi
 
-# Dependencies
-echo "[*] Installing dependencies..."
+# Dependencies (best effort; HamVoIP often uses pacman)
+echo "[*] Installing dependencies (best effort)..."
 if command -v apt >/dev/null 2>&1; then
   apt update
-  apt install -y curl util-linux gawk
+  apt install -y curl util-linux awk
 elif command -v pacman >/dev/null 2>&1; then
-  pacman -Sy --noconfirm curl util-linux gawk
+  pacman -Sy --noconfirm curl util-linux awk || true
 else
-  echo "WARNING: Unknown package manager; ensure curl + flock + awk are installed."
+  echo "WARNING: No apt/pacman found. Ensure curl, flock (util-linux), and awk exist."
 fi
 
 # Install mckn.sh
@@ -39,7 +39,7 @@ if id asterisk >/dev/null 2>&1; then
 fi
 chmod 755 "$STATE_BASE" || true
 
-# Node detection
+# Node detection (do not fail if grep finds nothing)
 NODE="$(grep -E '^\s*node\s*=' "$RPTCONF" 2>/dev/null | head -n1 | cut -d= -f2 | tr -d ' ' || true)"
 if [[ -z "${NODE:-}" ]]; then
   read -rp "Enter your AllStarLink node number: " NODE
@@ -123,7 +123,7 @@ echo
 echo "=== ASL-MCKN installation complete ==="
 echo "Node number : $NODE"
 echo
-echo "Reload Asterisk after changing rpt.conf:"
-echo "  asterisk -rx \"rpt reload\""
+echo "Reload app_rpt after changing rpt.conf (ASL3 tested):"
+echo "  asterisk -rx \"module reload app_rpt.so\""
 echo
 echo "73 de BV5DJ"
