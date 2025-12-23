@@ -27,7 +27,8 @@ esac
 STATE_DIR="/var/lib/asterisk/state/${NODE}"
 STATE_NODE="${STATE_DIR}/last_connected_node.txt"
 STATE_MODE="${STATE_DIR}/last_mode.txt"
-LOCKFILE="/var/lock/asl-mckn-${NODE}.lock"
+LOCKFILE="${STATE_DIR}/asl-mckn.lock"
+
 
 mkdir -p "$STATE_DIR"
 
@@ -76,35 +77,23 @@ if [[ "$MODE" == "0" ]]; then
 fi
 
 # ============================
-# Find most-connected keyed node
+# Find most-connected keyed node (robust)
 # ============================
 TMP="$(mktemp)"
 trap 'rm -f "$TMP"' EXIT
 
 curl -fsSL "http://stats.allstarlink.org/stats/keyed" -o "$TMP"
 
-BEST_NODE=""
-BEST_COUNT=0
-CUR_NODE=""
-CUR_COUNT=0
-
-while IFS= read -r line; do
-  if [[ "$line" == *'<td><a href="/stats/'* ]]; then
-    CUR_NODE="$(echo "$line" | grep -oP '(?<=/stats/)[0-9]+' || true)"
-    CUR_COUNT=0
-  fi
-
-  if [[ "$line" == *'<a href="/stats/'* ]]; then
-    ((CUR_COUNT++)) || true
-  fi
-
-  if [[ "$line" == *'</tr>'* && -n "$CUR_NODE" ]]; then
-    if [[ "$CUR_NODE" != "$LAST_NODE" && "$CUR_COUNT" -gt "$BEST_COUNT" ]]; then
-      BEST_NODE="$CUR_NODE"
-      BEST_COUNT="$CUR_COUNT"
-    fi
-  fi
-done < "$TMP"
+# Extract node IDs and pick the most frequent one (excluding LAST_NODE if set)
+BEST_NODE="$(
+  grep -o '/stats/[0-9]\+' "$TMP" \
+  | sed 's|/stats/||' \
+  | { if [[ -n "${LAST_NODE:-}" ]]; then grep -v "^${LAST_NODE}$"; else cat; fi; } \
+  | sort \
+  | uniq -c \
+  | sort -nr \
+  | awk 'NR==1 {print $2}'
+)"
 
 if [[ -z "$BEST_NODE" ]]; then
   echo "No suitable node found"
